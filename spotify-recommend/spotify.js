@@ -9,8 +9,8 @@ var getFromApi = function(endpoint, query={}) {
   });
 };
 
-var getRelatedArtist = function(artist, ID) {
-  const url = new URL(`https://api.spotify.com/v1/${artist}/${ID}/related-artists`);
+var getRelatedArtist = function(artist, ID, endpoint) {
+  const url = new URL(`https://api.spotify.com/v1/${artist}/${ID}/${endpoint}`);
   return fetch(url).then(function(response) {
     if (!response.ok) {
       return Promise.reject(response.statusText);
@@ -20,8 +20,10 @@ var getRelatedArtist = function(artist, ID) {
 };
 
 
+
 var artistID;
 var artist;
+var topTracks = [];
 var getArtist = function(name) {
   let query = {
     q: name,
@@ -36,12 +38,27 @@ var getArtist = function(name) {
       console.log(artistID);
       return artistID;
     }).then((artistID)=>{
-      return getRelatedArtist('artists', artistID);})
+      return getRelatedArtist('artists', artistID, 'related-artists');})
         .then((value)=>{
           artist.related = value.artists;
+          artist.related.forEach(obj=>{
+            topTracks.push(getRelatedArtist('artists', obj.id, 'top-tracks?country=US'));
+          });
+          return topTracks;
+        })
+        .then(array => {
+          return Promise.all(array);
+        })
+        .then(response => {
+          let i = 0;
+          response.forEach(obj=>{
+            artist.related[i].tracks = obj.tracks;
+            i++;
+          });
           return artist;
-        }).catch( err =>{
-          console.error(err.message);
+        })
+        .catch( err =>{
+          console.error('OOOOPS');
           return;
         }
       );};
