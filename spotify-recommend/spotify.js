@@ -18,12 +18,11 @@ var getArtist = function(name) {
       type: 'artist'
     };
     console.log('hello');
-    getFromApi('search', query)
-    .then(
-      (item)=>{
-        artist = item.artists.items[0];
+    return getFromApi('search', query)
+    .then( response =>{
+        artist = response.artists.items[0];
         console.log(artist);
-        Promise.resolve(artist);
+        return artist;
       }).catch( err =>{
         console.error(err.message);
         }
